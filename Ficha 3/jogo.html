@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jogo em Vue3</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <script src="https://unpkg.com/vue@3"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Batalha do Petroleo</h1>
+    </header>
+    <div id="game">
+      <section id="enemy" class="container">
+        <h2>Russia</h2>
+        <div class="healthbar">
+          <div class="healthbar__value" :style="{width: enemyHealth + '%'}">
+            {{enemyHealth}}
+          </div>
+        </div>
+      </section>
+      <section id="player" class="container">
+        <h2>Portugal</h2>
+        <div class="healthbar">
+          <div class="healthbar__value" :style="{width: playerHealth + '%'}">
+            {{playerHealth}}
+          </div>
+        </div>
+      </section>
+      <section v-if="jogar" id="controls">
+        <button @click="attackEnemy">ATACAR</button>
+        <button :disabled="usedCavalry" @click="cavalryCharge">
+          CAVALARIA
+        </button>
+        <button @click="healPlayer">DEFENDER</button>
+        <button @click="desistir">DESISTIR</button>
+        <section class="container">
+          <transition>
+            <p v-if="anim"><img src="./ck.gif" alt="" /></p>
+            <p v-else="anim"><img src="./1KQU.gif" alt="" /></p>
+          </transition>
+        </section>
+
+        <section id="log" class="container">
+          <h2>Crónica do Combate</h2>
+          <ul>
+            <li v-for="msg in logMessages">
+              {{msg.name}} {{msg.action}} com {{msg.value}} danos
+            </li>
+          </ul>
+        </section>
+      </section>
+
+      <section v-if="!jogar" id="log" class="container">
+        <h2>{{winner}}</h2>
+
+        <button @click="again()">again</button>
+      </section>
+    </div>
+    <script>
+      const app = Vue.createApp({
+        data() {
+          return {
+            playerHealth: 100,
+            enemyHealth: 100,
+            usedCavalry: false,
+            winner: null,
+            jogar: true,
+            logMessages: [],
+            toggle: false,
+            anim: false,
+          };
+        },
+        methods: {
+          animImg() {
+            this.anim = true;
+            setTimeout(() => {
+              this.anim = false;
+            }, 1500);
+          },
+          checkWinner() {
+            if (this.enemyHealth <= 0) {
+              this.enemyHealth = 0;
+              this.winner = "Portugal ganhou";
+              this.jogar = false;
+            }
+            if (this.playerHealth <= 0) {
+              this.playerHealth = 0;
+              this.winner = "Russia Ganhou :(";
+              this.jogar = false;
+            }
+            if (this.playerHealth >= 100) {
+              this.playerHealth = 100;
+            }
+          },
+          damage(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+          },
+          healPlayer() {
+            this.playerHealth += this.damage(8, 20);
+            if (this.playerHealth >= 100) {
+              this.playerHealth = 100;
+            }
+
+            this.enemyAttack();
+            this.checkWinner();
+          },
+          attackEnemy() {
+            let dano = this.damage(5, 12);
+            this.enemyHealth -= dano;
+            this.logMessages.unshift({
+              name: "Portugueses",
+              action: "atacam",
+              value: dano,
+            });
+            this.enemyAttack();
+            this.checkWinner();
+            this.animImg();
+          },
+          enemyAttack() {
+            let dano = this.damage(5, 12);
+            this.playerHealth -= dano;
+            this.logMessages.unshift({
+              name: "Russos",
+              action: "atacam",
+              value: dano,
+            });
+            this.checkWinner();
+          },
+          cavalryCharge() {
+            this.enemyHealth -= this.damage(10, 25);
+            this.usedCavalry = true;
+            this.enemyAttack();
+          },
+          again() {
+            this.jogar = true;
+            this.enemyHealth = 100;
+            this.playerHealth = 100;
+            this.usedCavalry = false;
+          },
+          desistir() {
+            this.playerHealth = 0;
+            this.checkWinner();
+          },
+        },
+      });
+      app.mount("#game");
+    </script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-family: "Jost", sans-serif;
+      }
+      body {
+        margin: 0;
+      }
+      header {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+        padding: 0.5rem;
+        background-color: #880017;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      section {
+        width: 90%;
+        max-width: 40rem;
+        margin: auto;
+      }
+      .healthbar {
+        width: 100%;
+        height: 40px;
+        border: 1px solid #575757;
+        margin: 1rem 0;
+        background: #fde5e5;
+      }
+      .healthbar__value {
+        background-color: #00a876;
+        width: 100%;
+        height: 100%;
+      }
+      .container {
+        text-align: center;
+        padding: 0.5rem;
+        margin: 1rem auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+        border-radius: 12px;
+      }
+      #enemy h2,
+      #player h2 {
+        margin: 0.25rem;
+      }
+      #controls {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+      }
+      button {
+        font: inherit;
+        border: 1px solid orange;
+        background-color: orange;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        margin: 1rem;
+        width: 12rem;
+        cursor: pointer;
+        box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.26);
+      }
+      button:focus {
+        outline: none;
+      }
+      button:hover,
+      button:active {
+        background-color: orangered;
+        border-color: orangered;
+        box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.26);
+      }
+      button:disabled {
+        background-color: #ccc;
+        border-color: #ccc;
+        box-shadow: none;
+        color: #3f3f3f;
+        cursor: not-allowed;
+      }
+      #log ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      #log li {
+        margin: 0.5rem 0;
+      }
+      .log--player {
+        color: #7700ff;
+      }
+      .log--enemy {
+        color: #da8d00;
+      }
+      .log--damage {
+        color: red;
+      }
+      .log--heal {
+        color: green;
+      }
+    </style>
+  </body>
+</html>

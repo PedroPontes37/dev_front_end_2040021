@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="https://unpkg.com/vue@3"></script>
+    <div id="app">
+      <h1>Lista de Tarefas</h1>
+      <input
+        type="text"
+        v-model="texto"
+        @keyup.enter="insereTarefa(texto)"
+        placeholder="Insira uma nova tarefa"
+      />
+      <button v-on:click="insereTarefa(texto)">Inserir</button>
+      <button v-on:click="editReverse()">Editar</button>
+
+      <ul v-if="!edit">
+        <li
+          v-for="elemento in tarefas"
+          :class="{prioritario:elemento.prioritario && !elemento.realizada,realizada:
+            elemento.realizada}"
+          @click="elemento.realizada=!elemento.realizada"
+        >
+          {{elemento.nome}}
+        </li>
+      </ul>
+      <ul v-if="edit">
+        <li
+          v-for="elemento in tarefas"
+          :class="{prioritario:elemento.prioritario && !elemento.realizada,realizada:
+            elemento.realizada}"
+        >
+          <input type="text" v-model="elemento.nome" />
+          <input type="checkbox" v-model="elemento.prioritario" />
+          <input type="checkbox" v-model="elemento.realizada" />
+        </li>
+      </ul>
+    </div>
+    <script>
+      Vue.createApp({
+        data() {
+          return {
+            texto: "",
+            edit: false,
+            tarefas: [
+              { nome: "Exercício HTML", prioritario: false, realizada: false },
+              { nome: "Exercício CSS", prioritario: false, realizada: false },
+              { nome: "Exercício JS", prioritario: false, realizada: false },
+              { nome: "Exercício Vue", prioritario: false, realizada: false },
+              {
+                nome: "Exercício React",
+                prioritario: false,
+                realizado: false,
+              },
+            ],
+          };
+        },
+        methods: {
+          insereTarefa() {
+            if (this.texto.length > 3) {
+              this.tarefas.push({
+                nome: this.texto,
+                prioritario: false,
+                realizado: false,
+              });
+              this.texto = "";
+            }
+          },
+          editReverse() {
+            this.edit = !this.edit;
+          },
+        },
+      }).mount("#app");
+    </script>
+    <style>
+      li {
+        cursor: pointer;
+      }
+      body {
+        padding: 10px 50px;
+      }
+      button {
+        margin-left: 10px;
+      }
+      .realizada {
+        text-decoration: line-through;
+        color: gray;
+      }
+      .prioritario {
+        color: red;
+      }
+    </style>
+  </body>
+</html>
